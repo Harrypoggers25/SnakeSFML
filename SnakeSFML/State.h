@@ -12,6 +12,6 @@ public:
 	virtual void updateEvent(const sf::Event& event) = 0;
 	virtual void update() = 0;
 	virtual void render(sf::RenderTarget* window) = 0;
-	virtual bool changeState(std::stack<State*>* states) = 0;
+	virtual bool changeState(std::stack<State*>* states) = 0; // false = add | true = replace
 };
 
