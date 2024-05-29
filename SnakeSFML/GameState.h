@@ -9,8 +9,10 @@ class GameState :
 {
 private:
 	sf::Color colors[MAX_COLOR_SIZE * 2];
+	sf::CircleShape* fruit;
 	std::vector<sf::RectangleShape*> cells;
 	std::vector<sf::Vector2i> trail;
+
 	unsigned int size;
 	char dir;
 
@@ -18,6 +20,7 @@ private:
 	void resetSnake();
 	void addTrail(const int& x, const int& y);
 	void move(const char& key);
+	void addFruit();
 
 public:
 	GameState();

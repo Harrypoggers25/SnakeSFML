@@ -40,8 +40,39 @@ void GameState::move(const char& key)
 	this->dir = key;
 	pos = pos + sf::Vector2i(dx, dy);
 
-	addTrail(pos.x, pos.y);
+	auto fpos = sf::Vector2i(
+		(int)(this->fruit->getPosition().x / 25.f),
+		(int)(this->fruit->getPosition().y / 25.f)
+	);
+	
+	if (pos == fpos) {
+		this->addFruit();
+		this->addTrail(pos.x, pos.y);
+	}
+	else this->trail.pop_back();
 	this->trail.insert(this->trail.begin(), pos);
+}
+
+void GameState::addFruit()
+{
+	sf::Vector2i pos;
+	while (true) {
+		pos = sf::Vector2i(
+			(float)(rand() % 32), 
+			(float)(rand() % 32)
+		);
+		auto isTrailExist = [](const std::vector<sf::Vector2i>& trail, const sf::Vector2i& pos) {
+			for (size_t i = 0; i < trail.size(); i++) {
+				if (trail[i] == pos) return true;
+			}
+			return false;
+		};
+		if (!isTrailExist(this->trail, pos)) break;
+	}
+	this->fruit->setPosition(
+		(float) pos.x * 25.f,
+		(float) pos.y * 25.f
+	);
 }
 
 GameState::GameState()
@@ -55,12 +86,16 @@ GameState::GameState()
 		this->colors[i + MAX_COLOR_SIZE / 2] = sf::Color(r, g, 0);
 		g -= 15;
 	}
+	this->fruit = new sf::CircleShape(12.5f);
+	this->fruit->setFillColor(sf::Color::Red);
 	this->init();
+	std::srand((unsigned)time(0));
 }
 
 GameState::~GameState()
 {
 	this->resetSnake();
+	delete this->fruit;
 }
 
 void GameState::init()
@@ -70,6 +105,7 @@ void GameState::init()
 	this->addTrail(15, 15);
 	this->trail.push_back(sf::Vector2i(15, 15));
 	this->dir = '0';
+	this->addFruit();
 }
 
 void GameState::updateEvent(const sf::Event& event)
@@ -96,6 +132,7 @@ void GameState::render(sf::RenderTarget* window)
 		this->cells[i]->setPosition(pos);
 		window->draw(*this->cells[i]);
 	}
+	window->draw(*this->fruit);
 }
 
 bool GameState::changeState(std::stack<State*>* states)
