@@ -2,20 +2,22 @@
 #include "State.h"
 #include <vector>
 
-#define MAX_COLOR_SIZE 18
+#define MAX_COLOR_SIZE 34
 
 class GameState :
     public State
 {
 private:
-	sf::Color colors[MAX_COLOR_SIZE];
+	sf::Color colors[MAX_COLOR_SIZE * 2];
 	std::vector<sf::RectangleShape*> cells;
-	std::vector<sf::Vector2i*> trail;
+	std::vector<sf::Vector2i> trail;
 	unsigned int size;
+	char dir;
+
 
 	void resetSnake();
 	void addTrail(const int& x, const int& y);
-	void move(const int& dx, const int& dy);
+	void move(const char& key);
 
 public:
 	GameState();

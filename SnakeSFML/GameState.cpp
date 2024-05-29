@@ -8,52 +8,53 @@ void GameState::resetSnake()
 		delete this->cells.back();
 		this->cells.pop_back();
 	}
-	while (!this->trail.empty()) {
-		delete this->trail.back();
-		this->trail.pop_back();
-	}
+	this->trail.clear();
 }
 
 void GameState::addTrail(const int& x, const int& y)
 {
 	this->cells.push_back(new sf::RectangleShape(sf::Vector2f(25.f, 25.f)));
-	this->cells.back()->setFillColor(this->colors[this->size++ % MAX_COLOR_SIZE]);
-	this->trail.push_back(new sf::Vector2i(x, y));
+	int index = this->size++ % MAX_COLOR_SIZE * 2;
+	this->cells.back()->setFillColor(this->colors[index < MAX_COLOR_SIZE ? index : MAX_COLOR_SIZE * 2 - 1 - index]);
 }
 
-void GameState::move(const int& dx, const int& dy)
+void GameState::move(const char& key)
 {
-	auto pos = this->trail.back();
-	this->trail.pop_back();
-	*pos = *pos + sf::Vector2i(dx, dy);
+	auto pos = this->trail.front();
+	int dx = 0, dy = 0;
+	switch (key)
+	{
+	case 'w':
+		dy = -1;
+		break;
+	case 'a':
+		dx = -1;
+		break;
+	case 's':
+		dy = 1;
+		break;
+	case 'd':
+		dx = 1;
+		break;
+	}
+	this->dir = key;
+	pos = pos + sf::Vector2i(dx, dy);
+
+	addTrail(pos.x, pos.y);
 	this->trail.insert(this->trail.begin(), pos);
 }
 
 GameState::GameState()
 {
-	this->colors[0] = sf::Color(86, 255, 1),
-	this->colors[1] = sf::Color(170, 255, 3);
-	this->colors[2] = sf::Color(255, 255, 1);
-	this->colors[3] = sf::Color(255, 170, 1);
-	this->colors[4] = sf::Color(255, 84, 0);
-	this->colors[5] = sf::Color(254, 0, 2);
-	this->colors[6] = sf::Color(255, 0, 86);
-	this->colors[7] = sf::Color(255, 0, 172);
-	this->colors[8] = sf::Color(255, 0, 255);
-	this->colors[9] = sf::Color(171, 1, 255);
-	this->colors[10] = sf::Color(86, 0, 254);
-	this->colors[11] = sf::Color(0, 0, 254);
-	this->colors[12] = sf::Color(0, 85, 254);
-	this->colors[13] = sf::Color(0, 170, 255);
-	this->colors[14] = sf::Color(1, 255, 255);
-	this->colors[15] = sf::Color(0, 255, 169);
-	this->colors[16] = sf::Color(0, 255, 85);
-	this->colors[17] = sf::Color(1, 255, 2);
-	/*for (size_t i = 0; i < 25; i++) {
-		this->cells.push_back(new sf::RectangleShape(sf::Vector2f(25.f, 25.f)));
-		this->cells.back()->setFillColor(colors[i % 18]);
-		this->cells.back()->setPosition(i * 25, 0);
-	}*/
+	int r = 0, g = 255;
+	for (int i = 0; i < MAX_COLOR_SIZE / 2; i++) {
+		this->colors[i] = sf::Color(r, g, 0);
+		r += 15;
+	}
+	for (int i = 0; i < MAX_COLOR_SIZE / 2; i++) {
+		this->colors[i + MAX_COLOR_SIZE / 2] = sf::Color(r, g, 0);
+		g -= 15;
+	}
 	this->init();
 }
 
@@ -67,15 +68,17 @@ void GameState::init()
 	// Reset values
 	this->resetSnake();
 	this->addTrail(15, 15);
+	this->trail.push_back(sf::Vector2i(15, 15));
+	this->dir = '0';
 }
 
 void GameState::updateEvent(const sf::Event& event)
 {
 	if (event.type == sf::Event::KeyPressed) {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) this->move(0, -1);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) this->move(-1, 0);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) this->move(0, 1);
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) this->move(1, 0);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && this->dir != 's') this->move('w');
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) && this->dir != 'd') this->move('a');
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && this->dir != 'w') this->move('s');
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && this->dir != 'a') this->move('d');
 	}
 }
 
@@ -87,8 +90,8 @@ void GameState::render(sf::RenderTarget* window)
 {
 	for (size_t i = 0; i < this->cells.size(); i++) {
 		auto pos = sf::Vector2f(
-			(float)this->trail[i]->x * 25.f, 
-			(float)this->trail[i]->y * 25.f
+			(float)this->trail[i].x * 25.f, 
+			(float)this->trail[i].y * 25.f
 		);
 		this->cells[i]->setPosition(pos);
 		window->draw(*this->cells[i]);
